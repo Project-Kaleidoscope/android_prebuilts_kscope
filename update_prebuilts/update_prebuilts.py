@@ -48,7 +48,11 @@ maven_artifacts = {
     'com.google.zxing:core:latest:jar': {'repo': 'maven'},
 
     # databinding
-    'androidx.databinding:viewbinding:7.2.1:aar': {'repo': 'gmaven'}
+    'androidx.databinding:databinding-runtime:latest:aar': {'repo': 'gmaven'},
+    'androidx.databinding:databinding-common:latest:jar': {'repo': 'gmaven'},
+    'androidx.databinding:databinding-adapters:latest:aar': {'repo': 'gmaven'},
+    'androidx.databinding:databinding-ktx:latest:aar': {'repo': 'gmaven'},
+    'androidx.databinding:viewbinding:latest:aar': {'repo': 'gmaven'},
 }
 
 # Mapping of POM dependencies to Soong build targets
@@ -266,6 +270,16 @@ def transform_maven_lib(working_dir, artifact_info, extract_res):
         with zipfile.ZipFile(artifact_file) as zip:
             manifests_dir = os.path.join(working_dir, "manifests")
             zip.extract("AndroidManifest.xml", os.path.join(manifests_dir, make_lib_name))
+
+            databinding_class_info_dir = os.path.join(working_dir, 'data-binding', 'class-info', make_lib_name)
+            databinding_artifacts_dir = os.path.join(working_dir, 'data-binding', 'artifacts', make_lib_name)
+            for zip_info in zip.filelist:
+                if zip_info.is_dir():
+                    continue
+                if zip_info.filename.startswith("data-binding-base-class-log/"):
+                    zip.extract(zip_info, databinding_class_info_dir)
+                elif zip_info.filename.startswith("data-binding/"):
+                    zip.extract(zip_info, databinding_artifacts_dir)
 
     print(maven_lib_vers, ":", maven_lib_name, "->", make_lib_name)
 
